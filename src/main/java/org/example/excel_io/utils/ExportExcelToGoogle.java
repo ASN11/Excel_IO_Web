@@ -10,6 +10,7 @@ import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import org.example.excel_io.api.Credentials;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +26,11 @@ public class ExportExcelToGoogle {
         service = Credentials.getSheets();
     }
 
-    public void export(String _excelFileName) {
-        try {
-            // Подключение к существующей таблице по её ID
-            Spreadsheet spreadsheet = service.spreadsheets().get(spreadsheetId).execute();
+    public void export(String _excelFileName) throws Exception {
+        // Подключение к существующей таблице по её ID
+        Spreadsheet spreadsheet = service.spreadsheets().get(spreadsheetId).execute();
 
+        if (new File(_excelFileName).exists()) {
             // Получить ссылку на первый рабочий лист
             Worksheet ws = createFirstWorksheet(_excelFileName);
             List<List<Object>> worksheetData = getDataFromExcel(ws);
@@ -38,43 +39,36 @@ public class ExportExcelToGoogle {
             clearRequest(service, range);
             UpdateValuesResponse result = setDataToGoogleSheet(range, worksheetData, spreadsheet);
 
-            System.out.printf("%d cells updated.", result.getUpdatedCells());
+            System.out.printf("%d cells updated.\n", result.getUpdatedCells());
 
             getCourierList();
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
         }
     }
 
     /**
      * Проверка на наличие данных на курьера в справочнике
      */
-    public List<String> getCourierList() {
+    public List<String> getCourierList() throws IOException {
         String range = "Основной файл!E2:F740";
         List<String> courierList = new ArrayList<>();
 
-        try {
-            ValueRange response = service.spreadsheets().values()
-                    .get(spreadsheetId, range)
-                    .execute();
+        ValueRange response = service.spreadsheets().values()
+                .get(spreadsheetId, range)
+                .execute();
 
-            List<List<Object>> values = response.getValues();
-            if (values != null && !values.isEmpty()) {
-                for (List<Object> row : values) {
-                    if (!row.get(0).equals("") && row.get(1).equals(" ")) {
-                        courierList.add((String) row.get(0)); // Значение в столбце E
-                    }
+        List<List<Object>> values = response.getValues();
+        if (values != null && !values.isEmpty()) {
+            for (List<Object> row : values) {
+                if (!row.get(0).equals("") && row.get(1).equals(" ")) {
+                    courierList.add((String) row.get(0)); // Значение в столбце E
                 }
             }
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
         }
 
         return courierList;
     }
 
-    public boolean courierListIsEmpty() {
+    public boolean courierListIsEmpty() throws IOException {
         List<String> courierList = getCourierList();
 
         return courierList.isEmpty();

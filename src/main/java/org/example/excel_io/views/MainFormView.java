@@ -5,6 +5,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
@@ -24,17 +26,21 @@ import static java.io.File.separator;
 @Route("/")
 public class MainFormView extends VerticalLayout {
     private final Upload singleFileUpload;
-    private final Button saveButton = new Button("START");
+    private final Button firstButton = new Button("START");
+    private final Button secondButton = new Button("Заполнить промежуточную таблицу");
     private FileInputStream fileInputStream;
     private String fileName;
+    private ExcelReader excelReader;
 
 @Autowired
     public MainFormView(MemoryBuffer memoryBuffer) {
         this.singleFileUpload = new Upload(memoryBuffer);
+        secondButton.setVisible(false);
 
         getFileInputStreamFromExcel(memoryBuffer);
-        buttonStart();
-        add(new HorizontalLayout(singleFileUpload, saveButton));
+        firstButton();
+        secondButton();
+        add(new HorizontalLayout(singleFileUpload, firstButton, secondButton));
     }
 
     /**
@@ -42,6 +48,7 @@ public class MainFormView extends VerticalLayout {
      */
     private void getFileInputStreamFromExcel(MemoryBuffer memoryBuffer) {
         singleFileUpload.addSucceededListener(event -> {
+            secondButton.setVisible(false);
             try {
                 fileName = event.getFileName();
                 byte[] fileBytes = memoryBuffer.getInputStream().readAllBytes();
@@ -56,27 +63,56 @@ public class MainFormView extends VerticalLayout {
                 fileInputStream = new FileInputStream(tempFile);
 
             } catch (IOException e) {
-                e.printStackTrace();
+                errorNotification(e.getMessage());
             }
         });
     }
 
-    private void buttonStart() {
-        saveButton.addClickListener(click -> {
-            ExcelReader excelReader = new ExcelReader(fileInputStream);
-            excelReader.analyze("result_" + fileName);
-
-            ExportExcelToGoogle exportExcelToGoogle = new ExportExcelToGoogle();
-            exportExcelToGoogle.export("src" + separator + "main" + separator + "resources" + separator + "result_" + fileName);
-
-            excelReader.delete("result_" + fileName);
-
-            if (exportExcelToGoogle.courierListIsEmpty()) {
-                createSuccessMessage();
-            } else {
-                createErrorMessage(exportExcelToGoogle.getCourierList());
+    /**
+     * Обработка кнопки "START"
+     */
+    private void firstButton() {
+        firstButton.addClickListener(click -> {
+            excelReader = new ExcelReader(fileInputStream);
+            try {
+                excelReader.analyze("result_" + fileName);
+                secondButton.setVisible(true);
+            } catch (Exception e) {
+                errorNotification(e.getMessage());
             }
         });
+    }
+
+    /**
+     * Обработка кнопки "Заполнить промежуточную таблицу"
+     */
+    private void secondButton() {
+        secondButton.addClickListener(click -> {
+            try {
+                ExportExcelToGoogle exportExcelToGoogle = new ExportExcelToGoogle();
+                exportExcelToGoogle.export("src" + separator + "main" + separator + "resources" + separator + "result_" + fileName);
+
+                excelReader.delete("result_" + fileName);
+
+                if (exportExcelToGoogle.courierListIsEmpty()) {
+                    createSuccessMessage();
+                } else {
+                    createErrorMessage(exportExcelToGoogle.getCourierList());
+                }
+            } catch (Exception e) {
+                errorNotification(e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Отображает всплывающее уведомление об ошибке
+     */
+    private void errorNotification(String message) {
+        Notification errorNotification = new Notification( message, 5000, Notification.Position.BOTTOM_CENTER);
+        errorNotification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+        errorNotification.open();
     }
 
     /**
@@ -89,17 +125,27 @@ public class MainFormView extends VerticalLayout {
         H3 successHeader = new H3("Промежуточная таблицa заполнена успешно");
         successHeader.getStyle().set("color", "green");
 
-        Button successButton = new Button("Заполнить итоговую таблицу", event -> {
-            successDialog.close();
-            exportGoogleToGoogle();
-        });
-
-        VerticalLayout successLayout = new VerticalLayout(successHeader, successButton);
+        VerticalLayout successLayout = getSuccessLayout(successDialog, successHeader);
         successLayout.setAlignItems(Alignment.CENTER);
         successLayout.setSpacing(true);
 
         successDialog.add(successLayout);
         successDialog.open();
+    }
+
+    private VerticalLayout getSuccessLayout(Dialog successDialog, H3 successHeader) {
+        Button successButton = new Button("Заполнить итоговую таблицу", event -> {
+            successDialog.close();
+            exportGoogleToGoogle();
+        });
+
+        Button openTable = new Button("Открыть таблицу", event -> {
+            Page page = new Page(UI.getCurrent());
+            page.open("https://docs.google.com/spreadsheets/d/1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E/edit#gid=527366521",
+                    "_blank");
+        });
+
+        return new VerticalLayout(successHeader, new HorizontalLayout(openTable, successButton));
     }
 
     /**
