@@ -1,0 +1,6 @@
+/src/main/resources/credentials.json
+/target/
+/frontend/generated/
+/tokens/StoredCredential
+/frontend/index.html
+/HELP.md

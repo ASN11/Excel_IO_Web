@@ -15,6 +15,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.Route;
 import org.example.excel_io.utils.ExcelReader;
 import org.example.excel_io.utils.ExportExcelToGoogle;
+import org.example.excel_io.utils.ExportGoogleToGoogle;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
@@ -63,7 +64,7 @@ public class MainFormView extends VerticalLayout {
                 fileInputStream = new FileInputStream(tempFile);
 
             } catch (IOException e) {
-                errorNotification(e.getMessage());
+                createNotification(e.getMessage(), NotificationVariant.LUMO_ERROR);
             }
         });
     }
@@ -76,9 +77,10 @@ public class MainFormView extends VerticalLayout {
             excelReader = new ExcelReader(fileInputStream);
             try {
                 excelReader.analyze("result_" + fileName);
+                createNotification("Файл успешно обработан", NotificationVariant.LUMO_SUCCESS);
                 secondButton.setVisible(true);
             } catch (Exception e) {
-                errorNotification(e.getMessage());
+                createNotification(e.getMessage(), NotificationVariant.LUMO_ERROR);
             }
         });
     }
@@ -100,7 +102,7 @@ public class MainFormView extends VerticalLayout {
                     createErrorMessage(exportExcelToGoogle.getCourierList());
                 }
             } catch (Exception e) {
-                errorNotification(e.getMessage());
+                createNotification(e.getMessage(), NotificationVariant.LUMO_ERROR);
             }
         });
     }
@@ -108,9 +110,9 @@ public class MainFormView extends VerticalLayout {
     /**
      * Отображает всплывающее уведомление об ошибке
      */
-    private void errorNotification(String message) {
+    private void createNotification(String message, NotificationVariant variant) {
         Notification errorNotification = new Notification( message, 5000, Notification.Position.BOTTOM_CENTER);
-        errorNotification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        errorNotification.addThemeVariants(variant);
 
         errorNotification.open();
     }
@@ -152,7 +154,9 @@ public class MainFormView extends VerticalLayout {
      * Перенос данных из промежуточной таблицы в итоговую
      */
     private void exportGoogleToGoogle() {
-
+        System.out.println("Проверка");
+        ExportGoogleToGoogle exportGoogleToGoogle = new ExportGoogleToGoogle();
+        exportGoogleToGoogle.copy();
     }
 
     /**
