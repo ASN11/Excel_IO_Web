@@ -53,9 +53,23 @@ public class ExcelReader {
         List<String> columnDataC = extractColumnData(2, sourceSheet);
         Map<String, String> names = getNames(sourceSheet);
 
+        copyData(sourceSheet, targetSheet, columnDataA, columnDataB, columnDataC, names);
+
+        // Создаем FileOutputStream для записи целевого файла
+        FileOutputStream targetFileOutputStream = new FileOutputStream(targetFilePath);
+
+        // Сохраняем целевую книгу в целевом файле
+        targetWorkbook.write(targetFileOutputStream);
+
+        targetFileOutputStream.close();
+    }
+
+    /**
+     *  Копируем данные из исходного листа в целевой лист
+     */
+    private void copyData(Sheet sourceSheet, Sheet targetSheet, List<String> columnDataA, List<String> columnDataB, List<String> columnDataC, Map<String, String> names) {
         int rowResultIndex = 0;
 
-        // Копируем данные из исходного листа в целевой лист
         for (int rowIndex = 0; rowIndex <= sourceSheet.getLastRowNum(); rowIndex++) {
             Row sourceRow = sourceSheet.getRow(rowIndex);
             if (sourceRow != null) {
@@ -128,7 +142,7 @@ public class ExcelReader {
                 }
 
                 // удаляем часть маршрута,которые начинаются на Строгино, а заканчиваются на Тарном
-                if (columnDataB.get(rowIndex).equals("Склад")) {
+                if (columnDataB.get(rowIndex).equals("Склад")  && columnDataA.get(rowIndex).equals(columnDataA.get(rowIndex-1))) {
                     int rowIndexLocal = rowIndex;
                     while (!columnDataC.get(rowIndexLocal).isEmpty()) {
                         if (columnDataC.get(rowIndexLocal).equals("Москва, Промышленная, д. 12А") || rowIndexLocal == columnDataC.size()-1) {
@@ -176,17 +190,6 @@ public class ExcelReader {
             }
             rowResultIndex++;
         }
-
-        // Создаем FileOutputStream для записи целевого файла
-        FileOutputStream targetFileOutputStream = new FileOutputStream(targetFilePath);
-
-        // Сохраняем целевую книгу в целевом файле
-        targetWorkbook.write(targetFileOutputStream);
-
-        // Закрываем потоки
-        targetFileOutputStream.close();
-
-        System.out.println("Данные скопированы успешно!");
     }
 
     /**

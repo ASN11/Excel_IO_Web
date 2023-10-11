@@ -20,63 +20,63 @@ public class ExportGoogleToGoogle {
         service = Credentials.getSheets();
     }
 
-    public void copy() {
-        copySheet();
+    public int copy(String newSheetName) throws IOException {
+        int destinationSheetID = createNewSheet(newSheetName);
+        copyData(newSheetName);
 
-
+        return destinationSheetID;
     }
 
-    private void copySheet() {
-        try {
-            // Имя исходного и целевого листов
-            String sourceSheetName = "Шаблон (не трогать)";
-            int sourceSheetID = 58633884;
-            String destinationSheetName = "Тестовый лист_1";
-            int destinationSheetID = 600103475;
+    /**
+     * Копирует данные из локальной в итоговую таблицу
+     */
+    private void copyData(String newSheetName) throws IOException {
+        String RANGE_1_OLD = "Основной файл!A2:C500";
+        String RANGE_1_NEW = newSheetName + "!A5:C503";
+        String RANGE_2_OLD = "Основной файл!E2:H500";
+        String RANGE_2_NEW = newSheetName + "!D5:G503";
+        String RANGE_3_OLD = "Основной файл!D2:D500";
+        String RANGE_3_NEW = newSheetName + "!H2:H503";
 
-            // Копируем ширину столбцов из исходного листа в целевой
-            DuplicateSheetRequest duplicateRequest = new DuplicateSheetRequest()
-                    .setSourceSheetId(sourceSheetID)
-                    .setNewSheetName(destinationSheetName);
-
-            List<Request> requests = new ArrayList<>();
-            requests.add(new Request()
-                    .setDuplicateSheet(duplicateRequest));
-
-            // Выполняем запрос на копирование листа
-            BatchUpdateSpreadsheetRequest body = new BatchUpdateSpreadsheetRequest().setRequests(requests);
-            service.spreadsheets().batchUpdate(resultSpreadsheetId, body).execute();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        copyRange(RANGE_1_OLD, RANGE_1_NEW);
+        copyRange(RANGE_2_OLD, RANGE_2_NEW);
+        copyRange(RANGE_3_OLD, RANGE_3_NEW);
     }
 
+    private void copyRange(String RANGE_OLD, String RANGE_NEW) throws IOException {
+        ValueRange response1 = service.spreadsheets().values().get(mediumSpreadsheetId, RANGE_OLD).execute();
+        List<List<Object>> values1 = response1.getValues();
+        ValueRange body1 = new ValueRange().setRange(RANGE_NEW).setValues(values1);
 
-    private Integer getSheetId(String destinationSheetName) throws IOException {
-        // После добавления нового листа, выполните запрос на получение информации о таблице
-        Spreadsheet spreadsheet = service.spreadsheets().get(resultSpreadsheetId).execute();
-
-        // Получите список листов в таблице
-        List<Sheet> sheets = spreadsheet.getSheets();
-
-        // Ищите лист с именем "Тестовый лист_1" и получите его sheetId
-        Integer sheetId = null;
-        for (Sheet sheet : sheets) {
-            if (sheet.getProperties().getTitle().equals(destinationSheetName)) {
-                sheetId = sheet.getProperties().getSheetId();
-                break;
-            }
-        }
-
-        if (sheetId != null) {
-            System.out.println("sheetId нового листа 'Тестовый лист_1': " + sheetId);
-        } else {
-            System.out.println("Лист 'Тестовый лист_1' не найден в таблице.");
-        }
-
-        return sheetId;
+        // Экспорт значений в Google Таблицы
+        service.spreadsheets().values()
+                .update(resultSpreadsheetId, RANGE_NEW, body1).setValueInputOption("USER_ENTERED")
+                .execute();
     }
 
+    /**
+     * Копирует лист ID 58633884 и создаёт на его основе лист newSheetName
+     */
+    private int createNewSheet(String newSheetName) throws IOException {
+        int sourceSheetID = 58633884;
+
+        // Копируем лист со всеми свойствами
+        DuplicateSheetRequest duplicateRequest = new DuplicateSheetRequest()
+                .setSourceSheetId(sourceSheetID)
+                .setNewSheetName(newSheetName);
+
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request()
+                .setDuplicateSheet(duplicateRequest));
+
+        // Выполняем запрос на копирование листа
+        BatchUpdateSpreadsheetRequest body = new BatchUpdateSpreadsheetRequest().setRequests(requests);
+        BatchUpdateSpreadsheetResponse response = service.spreadsheets().batchUpdate(resultSpreadsheetId, body).execute();
+
+        // Извлекаем SheetId созданного листа
+        SheetProperties createdSheetProperties = response.getReplies().get(0).getDuplicateSheet().getProperties();
+
+        return createdSheetProperties.getSheetId();
+    }
 
 }

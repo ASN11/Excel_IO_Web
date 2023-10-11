@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static java.io.File.separator;
 
@@ -97,7 +99,9 @@ public class MainFormView extends VerticalLayout {
                 excelReader.delete("result_" + fileName);
 
                 if (exportExcelToGoogle.courierListIsEmpty()) {
-                    createSuccessMessage();
+                    createSuccessMessage("Промежуточная таблицa заполнена успешно",
+                            "Заполнить итоговую таблицу",
+                            "https://docs.google.com/spreadsheets/d/1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E/edit#gid=527366521");
                 } else {
                     createErrorMessage(exportExcelToGoogle.getCourierList());
                 }
@@ -118,16 +122,16 @@ public class MainFormView extends VerticalLayout {
     }
 
     /**
-     * Создает всплывающее окно, уведомляюзее об успешном заполнении промежуточной таблицы и кнопкой заполнения итоговой таблицы
+     * Создает всплывающее окно, уведомляюзее об успешном заполнении таблицы и кнопкой заполнения итоговой таблицы (или закрытия)
      */
-    private void createSuccessMessage() {
+    private void createSuccessMessage(String header, String successButtonText, String url) {
         Dialog successDialog = new Dialog();
         successDialog.setWidth("600px");
 
-        H3 successHeader = new H3("Промежуточная таблицa заполнена успешно");
+        H3 successHeader = new H3(header);
         successHeader.getStyle().set("color", "green");
 
-        VerticalLayout successLayout = getSuccessLayout(successDialog, successHeader);
+        VerticalLayout successLayout = getSuccessLayout(successDialog, successHeader, successButtonText, url);
         successLayout.setAlignItems(Alignment.CENTER);
         successLayout.setSpacing(true);
 
@@ -135,16 +139,17 @@ public class MainFormView extends VerticalLayout {
         successDialog.open();
     }
 
-    private VerticalLayout getSuccessLayout(Dialog successDialog, H3 successHeader) {
-        Button successButton = new Button("Заполнить итоговую таблицу", event -> {
+    private VerticalLayout getSuccessLayout(Dialog successDialog, H3 successHeader, String successButtonText, String url) {
+        Button successButton = new Button(successButtonText, event -> {
             successDialog.close();
-            exportGoogleToGoogle();
+            if (successButtonText.equals("Заполнить итоговую таблицу")) {
+                exportGoogleToGoogle();
+            }
         });
 
         Button openTable = new Button("Открыть таблицу", event -> {
             Page page = new Page(UI.getCurrent());
-            page.open("https://docs.google.com/spreadsheets/d/1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E/edit#gid=527366521",
-                    "_blank");
+            page.open(url, "_blank");
         });
 
         return new VerticalLayout(successHeader, new HorizontalLayout(openTable, successButton));
@@ -154,9 +159,29 @@ public class MainFormView extends VerticalLayout {
      * Перенос данных из промежуточной таблицы в итоговую
      */
     private void exportGoogleToGoogle() {
-        System.out.println("Проверка");
         ExportGoogleToGoogle exportGoogleToGoogle = new ExportGoogleToGoogle();
-        exportGoogleToGoogle.copy();
+        try {
+            int destinationSheetID = exportGoogleToGoogle.copy(today());
+            createSuccessMessage("Итоговая таблицa заполнена успешно",
+                    "Закрыть",
+                    "https://docs.google.com/spreadsheets/d/1BxBh2BYRj8Kb38E54QPnOiwYJ5ymwQVuSMsBOMKO6g4/edit#gid=" + destinationSheetID);
+        } catch (IOException e) {
+            createNotification(e.getMessage(), NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    /**
+     * Создает строку в фортате "dd.MM.yyyy" с текущей датой
+     */
+    private String today() {
+        // Получаем текущую дату
+        Date currentDate = new Date();
+
+        // Создаем объект SimpleDateFormat для форматирования
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+
+        // Форматируем дату и выводим её
+        return dateFormat.format(currentDate);
     }
 
     /**
