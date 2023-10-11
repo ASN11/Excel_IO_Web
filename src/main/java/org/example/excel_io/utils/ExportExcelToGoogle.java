@@ -18,6 +18,7 @@ import java.util.List;
 public class ExportExcelToGoogle {
     private final Sheets service;
     private final String spreadsheetId = "1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E"; // тестовый ID
+//    private final String spreadsheetId = "1zvod4JPGYpyI_eApQiX3q3jQAE1wbeBela0cOZvnEks"; // боевой ID
 
     /**
      * Проходим авторизацию API Google Sheets в момент создания объекта
@@ -35,11 +36,13 @@ public class ExportExcelToGoogle {
             Worksheet ws = createFirstWorksheet(_excelFileName);
             List<List<Object>> worksheetData = getDataFromExcel(ws);
 
-            String range = "Основной файл!A2:E740";
+            String range = "Основной файл!A2:E500";
             clearRequest(service, range);
             UpdateValuesResponse result = setDataToGoogleSheet(range, worksheetData, spreadsheet);
 
-            System.out.printf("%d cells updated.\n", result.getUpdatedCells());
+            if (result.getUpdatedCells() == 0) {
+                throw new IOException("Некорректный файл, данные не записаны");
+            }
 
             getCourierList();
         }
@@ -49,7 +52,7 @@ public class ExportExcelToGoogle {
      * Проверка на наличие данных на курьера в справочнике
      */
     public List<String> getCourierList() throws IOException {
-        String range = "Основной файл!E2:F740";
+        String range = "Основной файл!E2:F500";
         List<String> courierList = new ArrayList<>();
 
         ValueRange response = service.spreadsheets().values()

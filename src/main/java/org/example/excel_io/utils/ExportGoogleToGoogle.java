@@ -11,7 +11,12 @@ import java.util.List;
 public class ExportGoogleToGoogle {
     private final Sheets service;
     private final String mediumSpreadsheetId = "1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E"; // тестовый ID
+    //    private final String mediumSpreadsheetId = "1zvod4JPGYpyI_eApQiX3q3jQAE1wbeBela0cOZvnEks"; // боевой ID
     private final String resultSpreadsheetId = "1BxBh2BYRj8Kb38E54QPnOiwYJ5ymwQVuSMsBOMKO6g4"; // тестовый ID
+//    private final String resultSpreadsheetId = "1zzhBXU94CzN0kLF2U5ax3hY0l76TM9Lmj3yY338fdvo"; // боевой ID
+
+    int sourceSheetID = 58633884; // тестовый ID листа для копии
+//    int sourceSheetID = 1730872386; // боевой ID листа для копии
 
     /**
      * Проходим авторизацию API Google Sheets в момент создания объекта
@@ -36,7 +41,7 @@ public class ExportGoogleToGoogle {
         String RANGE_2_OLD = "Основной файл!E2:H500";
         String RANGE_2_NEW = newSheetName + "!D5:G503";
         String RANGE_3_OLD = "Основной файл!D2:D500";
-        String RANGE_3_NEW = newSheetName + "!H2:H503";
+        String RANGE_3_NEW = newSheetName + "!H5:H503";
 
         copyRange(RANGE_1_OLD, RANGE_1_NEW);
         copyRange(RANGE_2_OLD, RANGE_2_NEW);
@@ -58,8 +63,6 @@ public class ExportGoogleToGoogle {
      * Копирует лист ID 58633884 и создаёт на его основе лист newSheetName
      */
     private int createNewSheet(String newSheetName) throws IOException {
-        int sourceSheetID = 58633884;
-
         // Копируем лист со всеми свойствами
         DuplicateSheetRequest duplicateRequest = new DuplicateSheetRequest()
                 .setSourceSheetId(sourceSheetID)
