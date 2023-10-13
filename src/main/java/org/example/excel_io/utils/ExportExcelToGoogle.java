@@ -9,22 +9,28 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import org.example.excel_io.api.Credentials;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ExportExcelToGoogle {
     private final Sheets service;
-    private final String spreadsheetId = "1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E"; // тестовый ID
-//    private final String spreadsheetId = "1zvod4JPGYpyI_eApQiX3q3jQAE1wbeBela0cOZvnEks"; // боевой ID
+
+    @Value("${table.medium.id}")
+    private String spreadsheetId;
 
     /**
      * Проходим авторизацию API Google Sheets в момент создания объекта
      */
-    public ExportExcelToGoogle() {
-        service = Credentials.getSheets();
+    @Autowired
+    public ExportExcelToGoogle(Credentials credentials) {
+        service = credentials.getSheets();
     }
 
     public void export(String _excelFileName) throws Exception {

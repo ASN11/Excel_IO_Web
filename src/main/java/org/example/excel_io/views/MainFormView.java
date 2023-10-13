@@ -34,10 +34,14 @@ public class MainFormView extends VerticalLayout {
     private FileInputStream fileInputStream;
     private String fileName;
     private ExcelReader excelReader;
+    private final ExportExcelToGoogle exportExcelToGoogle;
+    private final ExportGoogleToGoogle exportGoogleToGoogle;
 
 @Autowired
-    public MainFormView(MemoryBuffer memoryBuffer) {
+    public MainFormView(MemoryBuffer memoryBuffer, ExportExcelToGoogle exportExcelToGoogle, ExportGoogleToGoogle exportGoogleToGoogle) {
+        this.exportExcelToGoogle = exportExcelToGoogle;
         this.singleFileUpload = new Upload(memoryBuffer);
+        this.exportGoogleToGoogle = exportGoogleToGoogle;
         secondButton.setVisible(false);
 
         getFileInputStreamFromExcel(memoryBuffer);
@@ -93,7 +97,6 @@ public class MainFormView extends VerticalLayout {
     private void secondButton() {
         secondButton.addClickListener(click -> {
             try {
-                ExportExcelToGoogle exportExcelToGoogle = new ExportExcelToGoogle();
                 exportExcelToGoogle.export("src" + separator + "main" + separator + "resources" + separator + "result_" + fileName);
 
                 excelReader.delete("result_" + fileName);
@@ -159,7 +162,6 @@ public class MainFormView extends VerticalLayout {
      * Перенос данных из промежуточной таблицы в итоговую
      */
     private void exportGoogleToGoogle() {
-        ExportGoogleToGoogle exportGoogleToGoogle = new ExportGoogleToGoogle();
         try {
             int destinationSheetID = exportGoogleToGoogle.copy(today());
             createSuccessMessage("Итоговая таблицa заполнена успешно",

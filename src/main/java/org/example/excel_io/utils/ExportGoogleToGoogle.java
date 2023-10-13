@@ -3,26 +3,31 @@ package org.example.excel_io.utils;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
 import org.example.excel_io.api.Credentials;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ExportGoogleToGoogle {
     private final Sheets service;
-    private final String mediumSpreadsheetId = "1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E"; // тестовый ID
-    //    private final String mediumSpreadsheetId = "1zvod4JPGYpyI_eApQiX3q3jQAE1wbeBela0cOZvnEks"; // боевой ID
-    private final String resultSpreadsheetId = "1BxBh2BYRj8Kb38E54QPnOiwYJ5ymwQVuSMsBOMKO6g4"; // тестовый ID
-//    private final String resultSpreadsheetId = "1zzhBXU94CzN0kLF2U5ax3hY0l76TM9Lmj3yY338fdvo"; // боевой ID
 
-    int sourceSheetID = 58633884; // тестовый ID листа для копии
-//    int sourceSheetID = 1730872386; // боевой ID листа для копии
+    @Value("${table.medium.id}")
+    private String mediumSpreadsheetId;
+    @Value("${table.result.id}")
+    private String resultSpreadsheetId;
+    @Value("${source_sheet.id}")
+    private int sourceSheetID;
 
     /**
      * Проходим авторизацию API Google Sheets в момент создания объекта
      */
-    public ExportGoogleToGoogle() {
-        service = Credentials.getSheets();
+    @Autowired
+    public ExportGoogleToGoogle(Credentials credentials) {
+        service = credentials.getSheets();
     }
 
     public int copy(String newSheetName) throws IOException {

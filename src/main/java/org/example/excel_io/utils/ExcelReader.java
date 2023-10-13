@@ -234,7 +234,7 @@ public class ExcelReader {
             if (row != null) {
                 Cell cell = row.getCell(5);
 
-                if (cell != null) {
+                if (cell != null && row.getCell(0) != null) {
                     names.put(row.getCell(0).toString(), cell.toString());
                 }
             }

@@ -13,6 +13,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import org.example.excel_io.ExcelIoWebApplication;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,14 +21,15 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 
+@Component
 public class Credentials {
-    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
-    private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
-    private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
+    private final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
+    private final String TOKENS_DIRECTORY_PATH = "tokens";
 
 
-    public static Sheets getSheets() {
+    public Sheets getSheets() {
         Sheets service = null;
 
         try {
@@ -48,7 +50,7 @@ public class Credentials {
      * @return объект Credential, который содержит информацию о доступе к API от имени пользователя
      * @throws IOException IOException
      */
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Загрузить секреты клиента
         InputStream in = ExcelIoWebApplication.class.getClassLoader().getResourceAsStream("credentials.json");
 
