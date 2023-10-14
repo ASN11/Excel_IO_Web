@@ -2,6 +2,7 @@ package org.example.excel_io.utils;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
+import lombok.Getter;
 import org.example.excel_io.api.Credentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Component
 public class ExportGoogleToGoogle {
     private final Sheets service;

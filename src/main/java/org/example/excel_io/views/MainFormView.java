@@ -104,7 +104,7 @@ public class MainFormView extends VerticalLayout {
                 if (exportExcelToGoogle.courierListIsEmpty()) {
                     createSuccessMessage("Промежуточная таблицa заполнена успешно",
                             "Заполнить итоговую таблицу",
-                            "https://docs.google.com/spreadsheets/d/1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E/edit#gid=527366521");
+                            "https://docs.google.com/spreadsheets/d/" + exportExcelToGoogle.getSpreadsheetId() + "/edit#gid=527366521");
                 } else {
                     createErrorMessage(exportExcelToGoogle.getCourierList());
                 }
@@ -166,7 +166,7 @@ public class MainFormView extends VerticalLayout {
             int destinationSheetID = exportGoogleToGoogle.copy(today());
             createSuccessMessage("Итоговая таблицa заполнена успешно",
                     "Закрыть",
-                    "https://docs.google.com/spreadsheets/d/1BxBh2BYRj8Kb38E54QPnOiwYJ5ymwQVuSMsBOMKO6g4/edit#gid=" + destinationSheetID);
+                    "https://docs.google.com/spreadsheets/d/" + exportGoogleToGoogle.getResultSpreadsheetId() + "/edit#gid=" + destinationSheetID);
         } catch (IOException e) {
             createNotification(e.getMessage(), NotificationVariant.LUMO_ERROR);
         }
@@ -203,7 +203,7 @@ public class MainFormView extends VerticalLayout {
         errorDialog.open();
     }
 
-    private static VerticalLayout getVerticalLayout(List<String> courierList, H3 errorHeader, Dialog errorDialog) {
+    private VerticalLayout getVerticalLayout(List<String> courierList, H3 errorHeader, Dialog errorDialog) {
         VerticalLayout errorLayout = new VerticalLayout(errorHeader);
 
         for (String line : courierList) {
@@ -214,7 +214,7 @@ public class MainFormView extends VerticalLayout {
         Button closeButton = new Button("Закрыть", event -> errorDialog.close());
         Button errorPlaceButton = new Button("Заполнить данные", event -> {
             Page page = new Page(UI.getCurrent());
-            page.open("https://docs.google.com/spreadsheets/d/1Zf_9P0Ewy2N-fTfmQSkJLkckBAB62rko7zXDV6mTh0E/edit#gid=527366521",
+            page.open("https://docs.google.com/spreadsheets/d/" + exportExcelToGoogle.getSpreadsheetId() + "/edit#gid=527366521",
                     "_blank");
         });
 
